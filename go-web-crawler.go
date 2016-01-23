@@ -100,12 +100,12 @@ func internalLinksfromSite(ll []string, dom string) []string {
 
 //возвращает массив строк которые получается при сравнении массивов list1 и list2
 //и если нет строки из list2 в массиве list1
-func UniqLinks(list1, list2 []string) []string {
+func UniqLinks(list1 []string, list2 []string) []string {
 	res := make([]string, 0)
-	f := false
 	for _, v2 := range list2 {
+		f := false
 		for _, v1 := range list1 {
-			if v1 == v2 {
+			if strings.Compare(v1, v2) == 0 {
 				f = true
 				//				break
 			}
