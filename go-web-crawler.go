@@ -62,11 +62,12 @@ func gethtmlpage(url string) []byte {
 
 //сохранить данные в файл
 func Savetofile(namef string, str string) error {
-	file, err := os.OpenFile(namef, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.Create(namef) //OpenFile(namef, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		// handle the error here
 		return err
 	}
+	defer file.Close()
 	file.WriteString(str)
 	return err
 }
@@ -106,9 +107,9 @@ func UniqLinks(list1 []string, list2 []string) []string {
 	for _, v2 := range list2 {
 		f := false
 		for _, v1 := range list1 {
-			if strings.Compare(v1, v2) == 0 {
+			if v1 == v2 { //strings.Compare(v1, v2) == 0 {
 				f = true
-				//				break
+				break
 			}
 		}
 		if f != true {
@@ -127,10 +128,30 @@ func AddtoEndList(l1 []string, l2 []string) []string {
 	return res
 }
 
+//удаление повторов в массиве
+func delPovtor(l []string) []string {
+	var f bool
+	res := make([]string, 0)
+	for i := 0; i < len(l); i++ {
+		f = true
+		for j := 0; j < i; j++ {
+			if l[i] == l[j] {
+				f = false
+				break
+			}
+		}
+		if f {
+			res = append(res, l[i])
+			f = true
+		}
+	}
+	return res
+}
+
 func main() {
 	fmt.Println("Start Programm..")
 	//	myurl := "http://echo.msk.ru"
-	myurl := "http://citilink.ru"
+	myurl := "http://avito.ru"
 	timestart := time.Now().String()
 	//	flagEnd := false // флаг окончания выгрузки
 	lurl := make([]string, 0) //make([]ListUrl, 0)
@@ -153,6 +174,9 @@ func main() {
 	}
 	fmt.Println("c= ", c)
 	fmt.Println("len(lurl)= ", len(lurl))
+
+	lurl = delPovtor(lurl)
+	fmt.Println("после удаления дубликатов - len(lurl)= ", len(lurl))
 
 	s := ""
 	for _, v := range lurl {

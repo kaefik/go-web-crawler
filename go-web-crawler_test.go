@@ -39,6 +39,24 @@ func TestUniqLinks(t *testing.T) {
 	if comparearray(l, res) == false {
 		t.Error("10 5 4 10", l)
 	}
+
+	l1 = []string{"10", "5", "4", "10"}
+	l2 = []string{"1", "2", "5"}
+	res = []string{"1", "2"}
+
+	l = UniqLinks(l1, l2)
+	if comparearray(l, res) == false {
+		t.Error(l)
+	}
+
+	l1 = []string{"10", "5", "4", "10"}
+	l2 = []string{"10", "5", "4", "10"}
+	res = make([]string, 0)
+
+	l = UniqLinks(l1, l2)
+	if comparearray(l, res) == false {
+		t.Error(l)
+	}
 }
 
 func TestAddtoEndList(t *testing.T) {
@@ -50,4 +68,37 @@ func TestAddtoEndList(t *testing.T) {
 		t.Error(l)
 	}
 
+	l1 = make([]string, 0)
+	l2 = []string{"10", "5", "4", "10"}
+	res = []string{"10", "5", "4", "10"}
+	l = AddtoEndList(l1, l2)
+	if comparearray(l, res) == false {
+		t.Error(l)
+	}
+
 }
+
+func TestDelPovtor(t *testing.T) {
+	l1 := []string{"1", "2", "5", "2", "99", "", "0", "", "1"}
+	res := []string{"1", "2", "5", "99", "", "0"}
+	l := delPovtor(l1)
+	if comparearray(l, res) == false {
+		t.Error(l)
+	}
+
+	l1 = []string{"1", "1", "1", "1", "1"}
+	res = []string{"1"}
+	l = delPovtor(l1)
+	if comparearray(l, res) == false {
+		t.Error(l)
+	}
+
+	l1 = make([]string, 0)
+	res = make([]string, 0)
+	l = delPovtor(l1)
+	if comparearray(l, res) == false {
+		t.Error(l)
+	}
+}
+
+//
