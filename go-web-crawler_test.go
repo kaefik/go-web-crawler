@@ -2,7 +2,7 @@
 package main
 
 import (
-	"fmt"
+	//	"fmt"
 	"strings"
 	"testing"
 )
@@ -17,7 +17,6 @@ func comparearray(l1, l2 []string) bool {
 		if strings.Compare(l1[i], l2[i]) != 0 {
 			return false
 		}
-
 	}
 	return true
 }
@@ -28,16 +27,28 @@ func TestUniqLinks(t *testing.T) {
 	res := []string{"10", "4", "10"}
 
 	l := UniqLinks(l1, l2)
-	fmt.Println("результат", l)
+	//	fmt.Println("результат", l)
 	if comparearray(l, res) == false {
 		t.Error(l)
 	}
+
+	l1 = make([]string, 0)
+	l2 = []string{"10", "5", "4", "10"}
+	res = []string{"10", "5", "4", "10"}
+
+	l = UniqLinks(l1, l2)
+	if comparearray(l, res) == false {
+		t.Error("10 5 4 10", l)
+	}
 }
 
-//func main() {
-//	fmt.Println("Hello World!")
-//}
+func TestAddtoEndList(t *testing.T) {
+	l1 := []string{"1", "2", "5"}
+	l2 := []string{"10", "5", "4", "10"}
+	res := []string{"1", "2", "5", "10", "5", "4", "10"}
+	l := AddtoEndList(l1, l2)
+	if comparearray(l, res) == false {
+		t.Error(l)
+	}
 
-//if v != 1.5 {
-//        t.Error("Expected 1.5, got ", v)
-//    }
+}

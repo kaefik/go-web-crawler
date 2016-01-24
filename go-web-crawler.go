@@ -118,22 +118,46 @@ func UniqLinks(list1 []string, list2 []string) []string {
 	return res
 }
 
+func AddtoEndList(l1 []string, l2 []string) []string {
+	res := l1
+	for _, v := range l2 {
+		res = append(res, v)
+	}
+	return res
+}
+
 func main() {
 	fmt.Println("Hello World!")
-	myurl := "http://echo.msk.ru"
+	//	myurl := "http://echo.msk.ru"
+	myurl := "http://citilink.ru"
 	//	flagEnd := false // флаг окончания выгрузки
-	//	lurl := make([]ListUrl, 0)
+	lurl := make([]string, 0) //make([]ListUrl, 0)
+	lurl = append(lurl, myurl)
 	c := 0
 	for {
-		if c == 1 {
+		if (c == 100) || (c > len(lurl)-1) {
 			break
 		} else {
-			body := gethtmlpage(myurl)
+			fmt.Print("c= ", c)
+			body := gethtmlpage(lurl[c])
 			listlinks := getLnksfromPage(body)
-			fmt.Println(listlinks)
-			fmt.Println(internalLinksfromSite(listlinks, myurl))
+			//			fmt.Println(listlinks)
+			listnew := internalLinksfromSite(listlinks, myurl)
+			listnew2 := UniqLinks(lurl, listnew)
+			lurl = AddtoEndList(lurl, listnew2)
+			fmt.Println("   len(lurl)= ", len(lurl))
+			c++
 		}
-		c++
+	}
+	fmt.Println("c= ", c)
+	fmt.Println("len(lurl)= ", len(lurl))
+
+	s := ""
+	for _, v := range lurl {
+		s += v + "\n"
 	}
 
+	Savetofile("result.csv", s)
+
+	//	fmt.Println(lurl)
 }
