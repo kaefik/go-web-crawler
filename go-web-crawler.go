@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"go-web-crawler/pick"
 
@@ -127,9 +128,10 @@ func AddtoEndList(l1 []string, l2 []string) []string {
 }
 
 func main() {
-	fmt.Println("Hello World!")
+	fmt.Println("Start Programm..")
 	//	myurl := "http://echo.msk.ru"
 	myurl := "http://citilink.ru"
+	timestart := time.Now().String()
 	//	flagEnd := false // флаг окончания выгрузки
 	lurl := make([]string, 0) //make([]ListUrl, 0)
 	lurl = append(lurl, myurl)
@@ -156,8 +158,13 @@ func main() {
 	for _, v := range lurl {
 		s += v + "\n"
 	}
-
+	timeend := time.Now().String()
+	fmt.Println("Time Start...", timestart)
+	fmt.Println("Time End...", timeend)
+	fmt.Println("Start save result...")
 	Savetofile("result.csv", s)
+	fmt.Println("End save result...")
+	fmt.Println("End Programm..")
 
 	//	fmt.Println(lurl)
 }

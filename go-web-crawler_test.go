@@ -27,7 +27,6 @@ func TestUniqLinks(t *testing.T) {
 	res := []string{"10", "4", "10"}
 
 	l := UniqLinks(l1, l2)
-	//	fmt.Println("результат", l)
 	if comparearray(l, res) == false {
 		t.Error(l)
 	}
