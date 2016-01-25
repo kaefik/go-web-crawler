@@ -105,16 +105,16 @@ func internalLinksfromSite(ll []string, dom string) []string {
 func UniqLinks(list1 []string, list2 []string) []string {
 	res := make([]string, 0)
 	for _, v2 := range list2 {
-		f := false
+		f := true
 		for _, v1 := range list1 {
 			if v1 == v2 { //strings.Compare(v1, v2) == 0 {
-				f = true
+				f = false
 				break
 			}
 		}
-		if f != true {
+		if f {
 			res = append(res, v2)
-			f = false
+			f = true
 		}
 	}
 	return res
@@ -150,15 +150,15 @@ func delPovtor(l []string) []string {
 
 func main() {
 	fmt.Println("Start Programm..")
-	//	myurl := "http://echo.msk.ru"
-	myurl := "http://avito.ru"
+	myurl := "http://echo.msk.ru"
+	//	myurl := "http://avito.ru"
 	timestart := time.Now().String()
 	//	flagEnd := false // флаг окончания выгрузки
 	lurl := make([]string, 0) //make([]ListUrl, 0)
 	lurl = append(lurl, myurl)
 	c := 0
 	for {
-		if (c == 100) || (c > len(lurl)-1) {
+		if (c == 10000) || (c > len(lurl)-1) {
 			break
 		} else {
 			fmt.Print("c= ", c)
@@ -166,8 +166,9 @@ func main() {
 			listlinks := getLnksfromPage(body)
 			//			fmt.Println(listlinks)
 			listnew := internalLinksfromSite(listlinks, myurl)
-			listnew2 := UniqLinks(lurl, listnew)
-			lurl = AddtoEndList(lurl, listnew2)
+			//			listnew2 := UniqLinks(lurl, listnew)
+			lurl = AddtoEndList(lurl, listnew)
+			lurl = delPovtor(lurl)
 			fmt.Println("   len(lurl)= ", len(lurl))
 			c++
 		}
