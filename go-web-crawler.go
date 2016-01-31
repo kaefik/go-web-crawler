@@ -2,12 +2,14 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"go-web-crawler/pick"
@@ -24,6 +26,11 @@ type ListUrl struct {
 	url       string // урл
 	fdownload bool   // флаг того что данный урл был загружен для анализа
 }
+
+var (
+	site    string
+	koliter string
+)
 
 //---- END инициализация глобальных типов и переменных
 
@@ -148,17 +155,39 @@ func delPovtor(l []string) []string {
 	return res
 }
 
+//-----------------
+// функция парсинга аргументов программы
+func parse_args() bool {
+	flag.StringVar(&site, "site", "", "Урл который нужно парсить для получения внутренних ссылок .")
+	flag.StringVar(&koliter, "koliter", "", "Количества итераций для выкачивания .")
+	flag.Parse()
+	if site == "" {
+		site = "http://echo.msk.ru"
+	}
+	if koliter == "" {
+		koliter = "100"
+	}
+	return true
+}
+
+//-----------------
+
 func main() {
 	fmt.Println("Start Programm..")
-	//	myurl := "http://echo.msk.ru"
-	myurl := "http://avito.ru"
+
+	if !parse_args() {
+		return
+	}
+
+	myurl := site
+	ckoliter, _ := strconv.Atoi(koliter)
 	timestart := time.Now().String()
 	//	flagEnd := false // флаг окончания выгрузки
 	lurl := make([]string, 0) //make([]ListUrl, 0)
 	lurl = append(lurl, myurl)
 	c := 0
 	for {
-		if (c == 100) || (c > len(lurl)-1) {
+		if (c == ckoliter) || (c > len(lurl)-1) {
 			break
 		} else {
 			fmt.Print("c= ", c)
