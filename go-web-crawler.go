@@ -107,6 +107,23 @@ func internalLinksfromSite(ll []string, dom string) []string {
 	return res
 }
 
+//выборка из списка урл ll только те которые являются внутренними страницами указанного домена dom
+func internalLinksfromSiteListUrl(ll []ListUrl, dom string) []ListUrl {
+	res := make([]ListUrl, 0)
+	for _, v := range ll {
+		if len(v.url) > 0 {
+			if v.url[0] == '/' {
+				res = append(res, ListUrl{url: dom + v.url, fdownload: false})
+			} else {
+				if strings.HasPrefix(v.url, dom) {
+					res = append(res, ListUrl{url: v.url, fdownload: false})
+				}
+			}
+		}
+	}
+	return res
+}
+
 //возвращает массив строк которые получается при сравнении массивов list1 и list2
 //и если нет строки из list2 в массиве list1
 func UniqLinks(list1 []string, list2 []string) []string {
@@ -127,7 +144,35 @@ func UniqLinks(list1 []string, list2 []string) []string {
 	return res
 }
 
+//возвращает массив строк которые получается при сравнении массивов list1 и list2
+//и если нет строки из list2 в массиве list1
+func UniqLinks2(list1 []ListUrl, list2 []ListUrl) []ListUrl {
+	res := make([]ListUrl, 0)
+	for _, v2 := range list2 {
+		f := false
+		for _, v1 := range list1 {
+			if (v1.url == v2.url) && (v1.fdownload == v2.fdownload) { //strings.Compare(v1, v2) == 0 {
+				f = true
+				break
+			}
+		}
+		if f != true {
+			res = append(res, v2)
+			f = false
+		}
+	}
+	return res
+}
+
 func AddtoEndList(l1 []string, l2 []string) []string {
+	res := l1
+	for _, v := range l2 {
+		res = append(res, v)
+	}
+	return res
+}
+
+func AddtoEndList2(l1 []ListUrl, l2 []ListUrl) []ListUrl {
 	res := l1
 	for _, v := range l2 {
 		res = append(res, v)
@@ -183,20 +228,20 @@ func main() {
 	ckoliter, _ := strconv.Atoi(koliter)
 	timestart := time.Now().String()
 	//	flagEnd := false // флаг окончания выгрузки
-	lurl := make([]string, 0) //make([]ListUrl, 0)
-	lurl = append(lurl, myurl)
+	lurl := make([]ListUrl, 0) // make([]string, 0)
+	lurl = append(lurl, ListUrl{url: myurl, fdownload: false})
 	c := 0
 	for {
 		if (c == ckoliter) || (c > len(lurl)-1) {
 			break
 		} else {
 			fmt.Print("c= ", c)
-			body := gethtmlpage(lurl[c])
+			body := gethtmlpage(lurl[c].url)
 			listlinks := getLnksfromPage(body)
 			//			fmt.Println(listlinks)
 			listnew := internalLinksfromSite(listlinks, myurl)
-			listnew2 := UniqLinks(lurl, listnew)
-			lurl = AddtoEndList(lurl, listnew2)
+			listnew2 := UniqLinks2(lurl, listnew)
+			lurl = AddtoEndList2(lurl, listnew2)
 			fmt.Println("   len(lurl)= ", len(lurl))
 			c++
 		}
