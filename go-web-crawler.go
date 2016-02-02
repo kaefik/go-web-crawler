@@ -94,23 +94,6 @@ func getLnksfromPage(body []byte) []string {
 }
 
 //выборка из списка урл ll только те которые являются внутренними страницами указанного домена dom
-func internalLinksfromSite(ll []string, dom string) []string {
-	res := make([]string, 0)
-	for _, v := range ll {
-		if len(v) > 0 {
-			if v[0] == '/' {
-				res = append(res, dom+v)
-			} else {
-				if strings.HasPrefix(v, dom) {
-					res = append(res, v)
-				}
-			}
-		}
-	}
-	return res
-}
-
-//выборка из списка урл ll только те которые являются внутренними страницами указанного домена dom
 func internalLinksfromSiteListUrl(ll []ListUrl, dom string) []ListUrl {
 	res := make([]ListUrl, 0)
 	for _, v := range ll {
@@ -122,26 +105,6 @@ func internalLinksfromSiteListUrl(ll []ListUrl, dom string) []ListUrl {
 					res = append(res, ListUrl{url: v.url, fdownload: 0})
 				}
 			}
-		}
-	}
-	return res
-}
-
-//возвращает массив строк которые получается при сравнении массивов list1 и list2
-//и если нет строки из list2 в массиве list1
-func UniqLinks(list1 []string, list2 []string) []string {
-	res := make([]string, 0)
-	for _, v2 := range list2 {
-		f := false
-		for _, v1 := range list1 {
-			if v1 == v2 { //strings.Compare(v1, v2) == 0 {
-				f = true
-				break
-			}
-		}
-		if f != true {
-			res = append(res, v2)
-			f = false
 		}
 	}
 	return res
@@ -167,38 +130,10 @@ func UniqLinks2(list1 []ListUrl, list2 []ListUrl) []ListUrl {
 	return res
 }
 
-func AddtoEndList(l1 []string, l2 []string) []string {
-	res := l1
-	for _, v := range l2 {
-		res = append(res, v)
-	}
-	return res
-}
-
 func AddtoEndList2(l1 []ListUrl, l2 []ListUrl) []ListUrl {
 	res := l1
 	for _, v := range l2 {
 		res = append(res, v)
-	}
-	return res
-}
-
-//удаление повторов в массиве
-func delPovtor(l []string) []string {
-	var f bool
-	res := make([]string, 0)
-	for i := 0; i < len(l); i++ {
-		f = true
-		for j := 0; j < i; j++ {
-			if l[i] == l[j] {
-				f = false
-				break
-			}
-		}
-		if f {
-			res = append(res, l[i])
-			f = true
-		}
 	}
 	return res
 }
