@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -28,9 +29,10 @@ type ListUrl struct {
 }
 
 var (
-	site     string
-	koliter  string
-	namefile string
+	site    string
+	koliter string
+	infile  string
+	outfile string
 )
 
 //---- END инициализация глобальных типов и переменных
@@ -91,7 +93,6 @@ func getLnksfromPage(body []byte) []string {
 
 	res, _ = pick.PickAttr(&pick.Option{&shtml, "a", nil}, "href")
 	return res
-
 }
 
 //выборка из списка урл ll только те которые являются внутренними страницами указанного домена dom
@@ -215,17 +216,42 @@ func (l *ListUrl) getinternalurls(myurl string) []ListUrl {
 }
 
 //-----------------
+//// чтение файла с именем namefи возвращение содержимое файла, иначе текст ошибки
+func readfiletxt(namef string) string {
+	file, err := os.Open(namef)
+	if err != nil {
+		return "handle the error here"
+	}
+	defer file.Close()
+	// get the file size
+	stat, err := file.Stat()
+	if err != nil {
+		return "error readfiletxt here"
+	}
+	// read the file
+	bs := make([]byte, stat.Size())
+	_, err = file.Read(bs)
+	if err != nil {
+		return "error readfiletxt here"
+	}
+	return string(bs)
+}
+
 // функция парсинга аргументов программы
 func parse_args() bool {
-	flag.StringVar(&site, "site", "", "Урл который нужно парсить для получения внутренних ссылок .")
+	flag.StringVar(&site, "site", "", "Урл который нужно парсить для получения внутренних ссылок. указывается без http://")
 	flag.StringVar(&koliter, "koliter", "", "Количества итераций для выкачивания .")
-	flag.StringVar(&namefile, "namefile", "", "Имя файла который выкачивает все найденные внутренние ссылки .")
+	flag.StringVar(&infile, "infile", "", "Имя файла который выкачивает все найденные внутренние ссылки .")
+	flag.StringVar(&outfile, "outfile", "", "Имя файла для сохранения результата.")
 	flag.Parse()
 	if site == "" {
-		site = "http://ulmart.ru"
+		site = "ulmart.ru"
 	}
 	if koliter == "" {
 		koliter = "10"
+	}
+	if outfile == "" {
+		outfile = "result.csv"
 	}
 	return true
 }
@@ -239,17 +265,44 @@ func main() {
 		return
 	}
 
+	//----для тестирования
+	infile = "listurl.txt"
+	outfile = "outlisturl.csv"
+	//---- END для тестирования
+
 	timestart := time.Now().String() // фиксация начала работы программы
 
-	if namefile != "" {
+	if infile != "" {
 		//  сделать получение списка урлов из файла с именем namefile
-		//  сделать получение внутренних урлов
-		// сделать удаление  повтора урлов
-		// сделать сохранение результата
+		str := readfiletxt(infile)
+		strs := strings.Split(str, "\n")
+		listurl := make([]ListUrl, 0)
+		kolc := len(strs)
+		for c, ss := range strs {
+			s1 := strings.Split(ss, ";")
+			//   получение внутренних урлов
+			r, _ := url.Parse(s1[0])
+			myurl := "http://" + r.Host
+			l := ListUrl{url: s1[0], fdownload: 0}
+			slist := l.getinternalurls(myurl)
+			listurl = AddtoEndList2(listurl, slist)
+			fmt.Print("c= ", c)
+			fmt.Print(" из  ", kolc)
+			fmt.Println("      len(lurl)= ", len(listurl))
+			//			c++
+		}
+		//  удаление  повтора урлов
+		listurl = delPovtor2(listurl)
+		//  сохранение результата
+		s := ""
+		for _, v := range listurl {
+			s += v.url + ";" + strconv.Itoa(v.fdownload) + "\n"
+		}
+		Savetofile(outfile, s)
 	} else {
 
 		//------------- BEGIN выкачка всех внутренних урлов из домена myurl
-		myurl := site
+		myurl := "http://" + site
 		ckoliter, _ := strconv.Atoi(koliter)
 
 		lurl := make([]ListUrl, 0) // make([]string, 0)
@@ -262,8 +315,8 @@ func main() {
 				listnew := lurl[c].getinternalurls(myurl)
 				lurl = AddtoEndList2(lurl, listnew)
 				lurl = delPovtor2(lurl)
-				fmt.Println("c= ", c)
-				fmt.Println("len(lurl)= ", len(lurl))
+				fmt.Print("c= ", c)
+				fmt.Println("      len(lurl)= ", len(lurl))
 				c++
 			}
 		}
@@ -278,7 +331,7 @@ func main() {
 		fmt.Println("Time Start...", timestart)
 		fmt.Println("Time End...", timeend)
 		fmt.Println("Start save result...")
-		Savetofile("result.csv", s)
+		Savetofile(outfile, s)
 		fmt.Println("End save result...")
 		//-------------END выкачка всех внутренних урлов из домена myurl
 	}
