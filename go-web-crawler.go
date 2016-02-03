@@ -28,8 +28,9 @@ type ListUrl struct {
 }
 
 var (
-	site    string
-	koliter string
+	site     string
+	koliter  string
+	namefile string
 )
 
 //---- END инициализация глобальных типов и переменных
@@ -110,6 +111,23 @@ func internalLinksfromSiteListUrl(ll []ListUrl, dom string) []ListUrl {
 	return res
 }
 
+//выборка из списка урл ll только те которые являются внутренними страницами указанного домена dom
+func internalLinksfromSite(ll []string, dom string) []string {
+	res := make([]string, 0)
+	for _, v := range ll {
+		if len(v) > 0 {
+			if v[0] == '/' {
+				res = append(res, dom+v) // ListUrl{url: dom + v.url, fdownload: 0})
+			} else {
+				if strings.HasPrefix(v, dom) {
+					res = append(res, v) //ListUrl{url: v.url, fdownload: 0})
+				}
+			}
+		}
+	}
+	return res
+}
+
 //возвращает массив строк которые получается при сравнении массивов list1 и list2
 //и если нет строки из list2 в массиве list1
 func UniqLinks2(list1 []ListUrl, list2 []ListUrl) []ListUrl {
@@ -158,14 +176,53 @@ func delPovtor2(l []ListUrl) []ListUrl {
 	return res
 }
 
+//удаление повторов в массиве
+func delPovtor(l []string) []string {
+	var f bool
+	res := make([]string, 0)
+	for i := 0; i < len(l); i++ {
+		f = true
+		for j := 0; j < i; j++ {
+			if l[i] == l[j] {
+				f = false
+				break
+			}
+		}
+		if f {
+			res = append(res, l[i])
+			f = true
+		}
+	}
+	return res
+}
+
+// выгрузка всех внутренних ссылок
+func (l *ListUrl) getinternalurls(myurl string) []ListUrl {
+	listlinksurl := make([]ListUrl, 0)
+	body, errs := gethtmlpage(l.url)
+	if errs {
+		l.fdownload = 1 // обработан url без ошибки
+		listlinks := getLnksfromPage(body)
+		listnew := internalLinksfromSite(listlinks, myurl)
+		listnew = delPovtor(listnew)
+		for _, vv := range listnew {
+			listlinksurl = append(listlinksurl, ListUrl{url: vv, fdownload: 0})
+		}
+	} else {
+		l.fdownload = -1 // обработан url была ошибка
+	}
+	return listlinksurl
+}
+
 //-----------------
 // функция парсинга аргументов программы
 func parse_args() bool {
 	flag.StringVar(&site, "site", "", "Урл который нужно парсить для получения внутренних ссылок .")
 	flag.StringVar(&koliter, "koliter", "", "Количества итераций для выкачивания .")
+	flag.StringVar(&namefile, "namefile", "", "Имя файла который выкачивает все найденные внутренние ссылки .")
 	flag.Parse()
 	if site == "" {
-		site = "http://echo.msk.ru"
+		site = "http://ulmart.ru"
 	}
 	if koliter == "" {
 		koliter = "10"
@@ -182,54 +239,50 @@ func main() {
 		return
 	}
 
-	myurl := site
-	ckoliter, _ := strconv.Atoi(koliter)
-	timestart := time.Now().String()
-	//	flagEnd := false // флаг окончания выгрузки
-	lurl := make([]ListUrl, 0) // make([]string, 0)
-	lurl = append(lurl, ListUrl{url: myurl, fdownload: 0})
-	c := 0
-	for {
-		if (c == ckoliter) || (c > len(lurl)-1) {
-			break
-		} else {
-			fmt.Print("c= ", c)
-			body, errs := gethtmlpage(lurl[c].url)
-			if errs {
-				lurl[c].fdownload = 1 // обработан url
-				listlinks := getLnksfromPage(body)
-				listlinksurl := make([]ListUrl, 0)
-				for _, vv := range listlinks {
-					listlinksurl = append(listlinksurl, ListUrl{url: vv, fdownload: 0})
-				}
-				//			fmt.Println(listlinks)
-				listnew := internalLinksfromSiteListUrl(listlinksurl, myurl)
-				//				listnew2 := UniqLinks2(lurl, listnew)
+	timestart := time.Now().String() // фиксация начала работы программы
+
+	if namefile != "" {
+		//  сделать получение списка урлов из файла с именем namefile
+		//  сделать получение внутренних урлов
+		// сделать удаление  повтора урлов
+		// сделать сохранение результата
+	} else {
+
+		//------------- BEGIN выкачка всех внутренних урлов из домена myurl
+		myurl := site
+		ckoliter, _ := strconv.Atoi(koliter)
+
+		lurl := make([]ListUrl, 0) // make([]string, 0)
+		lurl = append(lurl, ListUrl{url: myurl, fdownload: 0})
+		c := 0
+		for {
+			if (c == ckoliter) || (c > len(lurl)-1) {
+				break
+			} else {
+				listnew := lurl[c].getinternalurls(myurl)
 				lurl = AddtoEndList2(lurl, listnew)
 				lurl = delPovtor2(lurl)
-				fmt.Println("   len(lurl)= ", len(lurl))
-			} else {
-				lurl[c].fdownload = -1 // обработан url была ошибка
+				fmt.Println("c= ", c)
+				fmt.Println("len(lurl)= ", len(lurl))
+				c++
 			}
-			c++
 		}
-	}
-	fmt.Println("c= ", c)
-	fmt.Println("len(lurl)= ", len(lurl))
+		lurl = delPovtor2(lurl)
+		fmt.Println("после удаления дубликатов - len(lurl)= ", len(lurl))
 
-	lurl = delPovtor2(lurl)
-	fmt.Println("после удаления дубликатов - len(lurl)= ", len(lurl))
-
-	s := ""
-	for _, v := range lurl {
-		s += v.url + ";" + strconv.Itoa(v.fdownload) + "\n"
+		s := ""
+		for _, v := range lurl {
+			s += v.url + ";" + strconv.Itoa(v.fdownload) + "\n"
+		}
+		timeend := time.Now().String() // фиксация окончания работы программы
+		fmt.Println("Time Start...", timestart)
+		fmt.Println("Time End...", timeend)
+		fmt.Println("Start save result...")
+		Savetofile("result.csv", s)
+		fmt.Println("End save result...")
+		//-------------END выкачка всех внутренних урлов из домена myurl
 	}
-	timeend := time.Now().String()
-	fmt.Println("Time Start...", timestart)
-	fmt.Println("Time End...", timeend)
-	fmt.Println("Start save result...")
-	Savetofile("result.csv", s)
-	fmt.Println("End save result...")
+
 	fmt.Println("End Programm..")
 
 	//	fmt.Println(lurl)
